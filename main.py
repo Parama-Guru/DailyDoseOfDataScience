@@ -1,6 +1,6 @@
 import asyncio
 import nest_asyncio
-from sqlalchemy import insert
+from sqlalchemy import Float, insert
 from llama_index.core import SQLDatabase, Settings
 from llama_index.llms.openai import OpenAI
 from sqlalchemy import (
@@ -37,44 +37,68 @@ load_dotenv()
 # Apply nest_asyncio to allow multiple event loop runs
 nest_asyncio.apply()
 
-def workflow():
+def workflow(engine):
     Settings.llm = OpenAI("gpt-3.5-turbo")
 
-    engine = create_engine("sqlite:///:memory:", future=True)
+    import csv
+
+    import os
+
+    # Define the path to the CSV file inside the data directory
+    csv_file_name = next((f for f in os.listdir('data') if f.endswith('.csv')), None)
+    if csv_file_name:
+        csv_file_path = os.path.join('data', csv_file_name)
+    else:
+        raise FileNotFoundError("No CSV file found in the 'data' directory.")
+
+    # Create an in-memory SQLite database engine
     metadata_obj = MetaData()
 
-    # create city SQL table
-    table_name = "city_stats"
-    city_stats_table = Table(
+    # Create city SQL table
+    table_name = "input_tables"
+    with open(csv_file_path, mode='r', newline='') as file:
+        reader = csv.DictReader(file)
+        columns = []
+        for column_name in reader.fieldnames:
+            # Assuming all data types are either string, integer, or float for simplicity
+            sample_value = next(reader)[column_name]
+            if sample_value.isdigit():
+                column_type = Integer
+            else:
+                try:
+                    float(sample_value)
+                    column_type = Float
+                except ValueError:
+                    column_type = String(50)
+            columns.append(Column(column_name, column_type))
+    
+    input_tables = Table(
         table_name,
         metadata_obj,
-        Column("city_name", String(16), primary_key=True),
-        Column("population", Integer),
-        Column("state", String(16), nullable=False),
+        *columns
     )
 
     metadata_obj.create_all(engine)
-    rows = [
-        {"city_name": "New York City", "population": 8336000, "state": "New York"},
-        {"city_name": "Los Angeles", "population": 3822000, "state": "California"},
-        {"city_name": "Chicago", "population": 2665000, "state": "Illinois"},
-        {"city_name": "Houston", "population": 2303000, "state": "Texas"},
-        {"city_name": "Miami", "population": 449514, "state": "Florida"},
-        {"city_name": "Seattle", "population": 749256, "state": "Washington"},
-    ]
+
+    # Read data from the CSV file
+    with open(csv_file_path, mode='r', newline='') as file:
+        reader = csv.DictReader(file)
+        rows = [row for row in reader]
+
+    # Insert data into the SQL table
     for row in rows:
-        stmt = insert(city_stats_table).values(**row)
+        stmt = insert(input_tables).values(**row)
         with engine.begin() as connection:
-            cursor = connection.execute(stmt)
+            connection.execute(stmt)
 
     with engine.connect() as connection:
-        cursor = connection.exec_driver_sql("SELECT * FROM city_stats")
+        cursor = connection.exec_driver_sql(f"SELECT * FROM {table_name}")
         print(cursor.fetchall())
 
-    sql_database = SQLDatabase(engine, include_tables=["city_stats"])
+    sql_database = SQLDatabase(engine, include_tables=[table_name])
     sql_query_engine = NLSQLTableQueryEngine(
         sql_database=sql_database,
-        tables=["city_stats"]
+        tables=[table_name]
     )
 
     index = LlamaCloudIndex(
@@ -239,8 +263,8 @@ def workflow():
     wf = RouterOutputAgentWorkflow(tools=[sql_tool, llama_cloud_tool], verbose=True, timeout=120)
     return wf
 
-async def main(query: str)->str:
-    agent = workflow()
+async def main(query: str, engine)->str:
+    agent = workflow(engine)
     # Run the workflow with a message
     sql_query = await agent.run(message=query)
     return sql_query
