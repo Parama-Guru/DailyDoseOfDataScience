@@ -33,6 +33,8 @@ from llama_index.core.tools import QueryEngineTool
 from dotenv import load_dotenv
 import os
 load_dotenv()
+import streamlit as st
+
 os.environ["OPEN_API_KEY"] == st.secrets["OPEN_API_KEY"]
 # Apply nest_asyncio to allow multiple event loop runs
 nest_asyncio.apply()
