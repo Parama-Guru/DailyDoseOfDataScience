@@ -4,10 +4,13 @@ This project builds a RAG and Text-to-SQL query app in a single interface. We us
 - LlamaIndex for orchestrating the RAG app
 - SQL Database for storing the data from CSV files
 - Streamlit to build the UI
+
 A demo is shown below:
+
 [Video demo](demo.mp4)
 
 ## Installation and setup
+
 **Setup OpenAI**:
 Get an API key from [OpenAI](https://openai.com/) and set it in the `.env` file as follows:
 ```bash
