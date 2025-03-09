@@ -35,7 +35,7 @@ import os
 load_dotenv()
 import streamlit as st
 
-os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+#os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 # Apply nest_asyncio to allow multiple event loop runs
 nest_asyncio.apply()
 
@@ -104,10 +104,10 @@ def workflow(engine):
     )
 
     index = LlamaCloudIndex(
-        name="electronic-earthworm-2025-03-07",
-        project_name="Default",
-        organization_id="1a4b8e25-9901-485f-9a34-d137b0976431",
-        api_key="llx-bxc7RqJhLAVlZ0ZOWPJRL24NJLIBQt0URiyNwYgVsG8cNZ04"
+        name=os.getenv("name"),
+        project_name=os.getenv("project_name"),
+        organization_id=os.getenv("organization_id"),
+        api_key=os.getenv("api_key")
     )
 
     llama_cloud_query_engine = index.as_query_engine()
