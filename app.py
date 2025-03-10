@@ -4,6 +4,11 @@ from main import main
 from sqlalchemy import create_engine
 import os
 import shutil
+
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 # Create 'data' directory if it does not exist
 if not os.path.exists('data'):
     os.makedirs('data')
@@ -50,12 +55,22 @@ if uploaded_file is not None:
     st.session_state['engine'] = engine
     # Reset user input when a new file is uploaded
 
-# User input section
-user_input = st.text_input("Enter your text here:", placeholder="Type something...")
+# Accept user input
+if prompt := st.chat_input("Ask Your Question Here"):
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    # Display user message in chat message container
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-# Process the input and display the result
-if user_input:
+    # Process the input and display the result
     with st.spinner("Searching using Agent..."):
-        sql_query = asyncio.run(main(user_input, st.session_state['engine']))
-    st.success("Here is the Output:")
-    st.markdown(sql_query)
+        sql_query = asyncio.run(main(prompt, st.session_state['engine']))
+    
+    # Display assistant response in chat message container
+    with st.chat_message("assistant"):
+        st.success("Here is the Output:")
+        st.markdown(sql_query)
+
+    # Add assistant response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": sql_query})
