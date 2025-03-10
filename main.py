@@ -104,10 +104,10 @@ def workflow(engine):
     )
 
     index = LlamaCloudIndex(
-        name=os.getenv("name"),
-        project_name=os.getenv("project_name"),
-        organization_id=os.getenv("organization_id"),
-        api_key=os.getenv("api_key")
+        name=os.getenv("LLAMA_CLOUD_INDEX_NAME"),
+        project_name=os.getenv("LLAMA_CLOUD_PROJECT_NAME"),
+        organization_id=os.getenv("LLAMA_CLOUD_ORGANIZATION_ID"),
+        api_key=os.getenv("LLAMA_CLOUD_API_KEY")
     )
 
     llama_cloud_query_engine = index.as_query_engine()
