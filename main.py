@@ -103,11 +103,16 @@ def workflow(engine):
         tables=[table_name]
     )
 
+    # Llama Cloud Index
+    LLAMA_CLOUD_INDEX_NAME=os.getenv("LLAMA_CLOUD_INDEX_NAME"),
+    LLAMA_CLOUD_PROJECT_NAME=os.getenv("LLAMA_CLOUD_PROJECT_NAME"),
+    LLAMA_CLOUD_ORGANIZATION_ID=os.getenv("LLAMA_CLOUD_ORGANIZATION_ID"),
+    LLAMA_CLOUD_API_KEY=os.getenv("LLAMA_CLOUD_API_KEY")
     index = LlamaCloudIndex(
-        name=os.getenv("LLAMA_CLOUD_INDEX_NAME"),
-        project_name=os.getenv("LLAMA_CLOUD_PROJECT_NAME"),
-        organization_id=os.getenv("LLAMA_CLOUD_ORGANIZATION_ID"),
-        api_key=os.getenv("LLAMA_CLOUD_API_KEY")
+        name=LLAMA_CLOUD_INDEX_NAME,
+        project_name=LLAMA_CLOUD_PROJECT_NAME,
+        organization_id=LLAMA_CLOUD_ORGANIZATION_ID,
+        api_key=LLAMA_CLOUD_API_KEY
     )
 
     llama_cloud_query_engine = index.as_query_engine()
@@ -272,4 +277,5 @@ async def main(query: str, engine)->str:
     return sql_query
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    engine = create_engine("sqlite:///:memory:", future=True)
+    asyncio.run(main("What is the population of New York City?", engine))
