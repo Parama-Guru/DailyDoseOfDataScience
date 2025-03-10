@@ -9,6 +9,10 @@ A demo is shown below:
 
 [Video demo](demo.mp4)
 
+Twitter Thread Draft:
+
+[X Thread](https://typefully.com/t/dJMjlT7)
+
 ## Installation and setup
 
 **Setup OpenAI**:
